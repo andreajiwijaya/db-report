@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f5f7fb;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 70% -15%, rgba(219, 234, 254, .7), transparent 42%),
+    radial-gradient(ellipse at 0% 40%, rgba(224, 231, 255, .35), transparent 38%),
+    #f7f9fc;
+}
+
+button, input, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, .28);
+  outline-offset: 2px;
+}
+
+::selection { color: #153e75; background: #dbeafe; }
+
+/* Shared surfaces keep charts, tables and summary panels visually consistent. */
+[class*="bg-white"][class*="border-slate-200"][class*="rounded"] {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025), 0 10px 28px rgba(15, 23, 42, .035);
+}
+
+button:not(:disabled) { cursor: pointer; }
+button:not(:disabled):active { transform: scale(.98); }
+input, select { transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
+
+/* Keep dense data surfaces crisp while giving interactive cards a tactile hover state. */
+[class*="hover:shadow-xl"]:hover {
+  box-shadow: 0 14px 30px rgba(15, 23, 42, .09);
+}
+
+::placeholder { opacity: .9; }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border: 2px solid transparent; border-radius: 99px; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+/* Quiet motion makes the dashboard feel responsive without distracting from its data. */
+@media (prefers-reduced-motion: no-preference) {
+  button, a, input, select { transition-duration: 180ms; }
+  main > div > * { animation: rise-in .42s both; }
+  main > div > *:nth-child(2) { animation-delay: 45ms; }
+  main > div > *:nth-child(3) { animation-delay: 90ms; }
+  main > div > *:nth-child(4) { animation-delay: 135ms; }
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 1023px) {
+  body { padding-bottom: 70px; }
+}
+
+@media (max-width: 640px) {
+  body { overflow-x: hidden; }
+  main > div { padding-left: .75rem !important; padding-right: .75rem !important; }
+  button, select, input { min-height: 42px; }
+  .recharts-responsive-container { min-height: 240px; }
+}
