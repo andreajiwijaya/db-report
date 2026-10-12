@@ -53,7 +53,7 @@ export function useMonevData() {
   return { rawData, loading, error, lastUpdated, refetch: fetchData, bulanOptions }
 }
 
-export function useFilteredData(rawData, filters) {
+export function useFilteredData(rawData, filters, getFilterDate = getPublicationDate) {
   return useMemo(() => {
     let data = [...rawData]
 
@@ -63,7 +63,7 @@ export function useFilteredData(rawData, filters) {
 
     if (filters.bulan && filters.bulan !== 'all') {
       data = data.filter((d) => {
-        return getMonthKey(getPublicationDate(d)) === filters.bulan
+        return getMonthKey(getFilterDate(d)) === filters.bulan
       })
     }
 
@@ -73,7 +73,7 @@ export function useFilteredData(rawData, filters) {
       const dateTo = filters.dateTo instanceof Date ? filters.dateTo : filters.dateTo ? new Date(filters.dateTo) : null
 
       data = data.filter((d) => {
-        const publicationDate = getPublicationDate(d)
+        const publicationDate = getFilterDate(d)
         if (!publicationDate) return false
         if (dateFrom && publicationDate < dateFrom) return false
         if (dateTo) {
@@ -104,5 +104,5 @@ export function useFilteredData(rawData, filters) {
     }
 
     return data
-  }, [rawData, filters])
+  }, [rawData, filters, getFilterDate])
 }

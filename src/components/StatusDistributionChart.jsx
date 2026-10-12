@@ -25,8 +25,8 @@ export default function StatusDistributionChart({ data = [] }) {
   if (total === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center">
-        <h3 className="text-lg font-bold text-slate-900">Distribusi Status Evidence</h3>
-        <p className="text-sm text-slate-500 mt-2">Belum ada data evidence untuk ditampilkan.</p>
+        <h3 className="text-lg font-bold text-slate-900">Distribusi Status Siaran Pers</h3>
+        <p className="text-sm text-slate-500 mt-2">Belum ada data Siaran Pers untuk ditampilkan.</p>
       </div>
     )
   }
@@ -34,8 +34,8 @@ export default function StatusDistributionChart({ data = [] }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 transition-all duration-200 hover:shadow-md">
       <div className="mb-5">
-        <h3 className="text-lg font-bold text-slate-900">Distribusi Status Evidence</h3>
-        <p className="text-sm text-slate-500">Persentase evidence dengan minimal 6 dari 10 link terisi</p>
+        <h3 className="text-lg font-bold text-slate-900">Distribusi Status Siaran Pers</h3>
+        <p className="text-sm text-slate-500">Persentase Siaran Pers dengan minimal 6 dari 10 link terisi</p>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 flex items-center justify-center">
@@ -93,7 +93,7 @@ export default function StatusDistributionChart({ data = [] }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-700 font-medium">Belum ada tautan (0 link)</p>
-                <p className="text-xs text-slate-500 mt-1">Belum ada tautan evidence</p>
+                <p className="text-xs text-slate-500 mt-1">Belum ada tautan Siaran Pers</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-slate-700">{kosong}</p>

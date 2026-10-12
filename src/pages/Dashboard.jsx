@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { AlertTriangle, CalendarDays, ClipboardList } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, ClipboardList, Clock3 } from 'lucide-react'
 
 import Sidebar from '../components/Sidebar'
 import TopBar from '../components/TopBar'
@@ -16,25 +16,48 @@ import LoadingSkeleton from '../components/LoadingSkeleton'
 import PageHero from '../components/PageHero'
 
 import { useMonevData, useFilteredData } from '../hooks/useMonevData'
-import { calcGlobalStats, getLatestMonthKey, getMonthKey, getPublicationDate } from '../utils/dataUtils'
+import { calcGlobalStats, getMonthKey, getPeriodDate, getPublicationDate } from '../utils/dataUtils'
 import { UP3_LIST } from '../utils/constants'
 
+const MENU_STORAGE_KEY = 'db-report-active-menu'
+const VALID_MENUS = ['dashboard', 'unit-performance', 'evidence', 'activity', 'calendar']
+
 export default function Dashboard() {
-  const [activeMenu, setActiveMenu] = useState('dashboard')
+  const [activeMenu, setActiveMenu] = useState(() => {
+    const savedMenu = window.localStorage.getItem(MENU_STORAGE_KEY)
+    return VALID_MENUS.includes(savedMenu) ? savedMenu : 'dashboard'
+  })
   const [filters, setFilters] = useState({ up3: 'all', bulan: 'all', tipe: 'all', status: 'all', search: '', dateFrom: undefined, dateTo: undefined })
   const [activeUP3, setActiveUP3] = useState(null)
+  const [currentDateTime, setCurrentDateTime] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(MENU_STORAGE_KEY, activeMenu)
+  }, [activeMenu])
 
   const { rawData, loading, error, refetch } = useMonevData()
-  const filteredData = useFilteredData(rawData, filters)
-  const latestMonthKey = useMemo(() => getLatestMonthKey(rawData), [rawData])
+  const filterDateAccessor = activeMenu === 'evidence' ? getPeriodDate : getPublicationDate
+  const filteredData = useFilteredData(rawData, filters, filterDateAccessor)
+  const latestMonthKey = useMemo(() => {
+    const latestDate = rawData
+      .map(getPeriodDate)
+      .filter(Boolean)
+      .reduce((latest, date) => (!latest || date > latest ? date : latest), null)
+    return getMonthKey(latestDate)
+  }, [rawData])
   const currentMonthData = useMemo(
     () => latestMonthKey
-      ? rawData.filter((item) => getMonthKey(getPublicationDate(item)) === latestMonthKey)
+      ? rawData.filter((item) => getMonthKey(getPeriodDate(item)) === latestMonthKey)
       : [],
     [rawData, latestMonthKey]
   )
   const currentMonthLabel = useMemo(() => {
-    const currentMonth = currentMonthData.map(getPublicationDate).find(Boolean)
+    const currentMonth = currentMonthData.map(getPeriodDate).find(Boolean)
     return currentMonth
       ? currentMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
       : 'berjalan'
@@ -43,27 +66,11 @@ export default function Dashboard() {
 
   const globalStats = useMemo(() => calcGlobalStats(filteredData), [filteredData])
   const currentMonthStats = useMemo(() => calcGlobalStats(currentMonthData), [currentMonthData])
-  const latestTanggal = useMemo(() => {
-    const sorted = filteredData
-      .map((item) => getPublicationDate(item))
-      .filter(Boolean)
-      .sort((a, b) => b - a)
-    return sorted[0] ?? null
-  }, [filteredData])
-
-  const oldestTanggal = useMemo(() => {
-    const sorted = filteredData
-      .map((item) => getPublicationDate(item))
-      .filter(Boolean)
-      .sort((a, b) => a - b)
-    return sorted[0] ?? null
-  }, [filteredData])
-
   const monthSummary = useMemo(() => {
     const map = new Map()
 
     filteredData.forEach((item) => {
-      const date = getPublicationDate(item)
+      const date = getPeriodDate(item)
       if (!date) return
       const key = getMonthKey(date)
       const label = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
@@ -83,8 +90,14 @@ export default function Dashboard() {
     setFilters((current) => ({ ...current, up3: up3Id }))
   }
 
+  const handleMenuChange = (menu) => {
+    setActiveUP3(null)
+    setFilters((current) => ({ ...current, up3: 'all' }))
+    setActiveMenu(menu)
+  }
+
   if (loading && rawData.length === 0) {
-    return <LoadingSkeleton />
+    return <LoadingSkeleton activeMenu={activeMenu} />
   }
 
   if (error && rawData.length === 0) {
@@ -108,22 +121,22 @@ export default function Dashboard() {
   const contentTitle = {
     dashboard: 'Dashboard Monitoring',
     'unit-performance': 'Performa Unit',
-    evidence: 'Evidence Detail',
+    evidence: 'Siaran Pers',
     activity: 'Activity Log',
     calendar: 'Calendar',
   }[activeMenu] ?? 'Dashboard Monitoring'
 
   const contentSubtitle = {
-    dashboard: 'Ringkasan cepat status evidence seluruh unit',
-    'unit-performance': 'Analitik kelengkapan dan status evidence per unit',
-    evidence: 'Daftar evidence lengkap dengan filter dan status',
-    activity: 'Aktivitas terbaru evidence dan item yang perlu follow-up',
-    calendar: 'Tampilan kalender untuk melihat sebaran evidence per tanggal',
-  }[activeMenu] ?? 'Ringkasan evidence'
+    dashboard: 'Ringkasan cepat status Siaran Pers seluruh unit',
+    'unit-performance': 'Analitik kelengkapan dan status Siaran Pers per unit',
+    evidence: 'Daftar Siaran Pers lengkap dengan filter dan status',
+    activity: 'Aktivitas terbaru Siaran Pers dan item yang perlu follow-up',
+    calendar: 'Tampilan kalender untuk melihat sebaran Siaran Pers per tanggal',
+  }[activeMenu] ?? 'Ringkasan Siaran Pers'
 
   return (
     <div className="flex min-h-dvh bg-transparent">
-      <Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} data={filteredData} rawData={rawData} />
+      <Sidebar activeMenu={activeMenu} setActiveMenu={handleMenuChange} data={filteredData} rawData={rawData} />
 
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <TopBar
@@ -132,8 +145,6 @@ export default function Dashboard() {
           data={filteredData}
           rawData={rawData}
           activeMenu={activeMenu}
-          searchValue={filters.search}
-          onSearchChange={(value) => setFilters((current) => ({ ...current, search: value }))}
         />
 
         <main className="relative flex-1 overflow-auto">
@@ -175,16 +186,28 @@ export default function Dashboard() {
                   <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4 mb-5">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">Ringkasan Cepat</h3>
-                      <p className="text-sm text-slate-500">Snapshot kondisi evidence paling penting untuk pembukaan dashboard.</p>
+                      <p className="text-sm text-slate-500">Jumlah Siaran Pers dikelompokkan berdasarkan periode Siaran Pers.</p>
                     </div>
                     <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                        <CalendarDays size={14} />
-                        {latestTanggal ? latestTanggal.toLocaleDateString('id-ID') : 'Belum ada tanggal'}
+                      <span
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100"
+                        title="Tanggal dan waktu perangkat saat ini"
+                        aria-live="polite"
+                      >
+                        <Clock3 size={14} />
+                        {currentDateTime.toLocaleString('id-ID', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
                       </span>
                       <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-100">
                         <ClipboardList size={14} />
-                        {globalStats.total} evidence
+                        {globalStats.total} Siaran Pers
                       </span>
                     </div>
                   </div>
@@ -197,7 +220,7 @@ export default function Dashboard() {
                           <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
                         </div>
                         <p className="text-2xl font-bold text-slate-900">{item.count}</p>
-                        <p className="text-xs text-slate-500 mt-1">evidence diisi pada bulan tersebut</p>
+                        <p className="text-xs text-slate-500 mt-1">Siaran Pers diisi pada bulan tersebut</p>
                       </div>
                     ))}
                   </div>
@@ -221,7 +244,7 @@ export default function Dashboard() {
                   <PageHero
                     eyebrow="Analitik unit"
                     title="Performa Unit"
-                    description="Bandingkan capaian publikasi dan status evidence setiap unit dalam satu tampilan."
+                    description="Bandingkan capaian Siaran Pers dan status Siaran Pers setiap unit dalam satu tampilan."
                   >
                     <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-left backdrop-blur-sm lg:text-right">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-100/65">Unit terdaftar</p>
@@ -246,11 +269,11 @@ export default function Dashboard() {
             ) : activeMenu === 'evidence' ? (
               <>
                 <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
-                  <PageHero eyebrow="Arsip monitoring" title="Evidence" description="Cari, saring, dan periksa tautan evidence dalam satu tempat.">
+                  <PageHero eyebrow="Arsip monitoring" title="Siaran Pers" description="Cari, saring, dan periksa tautan Siaran Pers dalam satu tempat.">
                     <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-left backdrop-blur-sm lg:text-right">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-100/65">Data tersaring</p>
                       <p className="mt-1 text-lg font-bold text-white">{filteredData.length}</p>
-                      <p className="text-xs text-blue-100/70">evidence</p>
+                      <p className="text-xs text-blue-100/70">Siaran Pers</p>
                     </div>
                   </PageHero>
                   <div className="p-4 sm:p-6">
@@ -261,7 +284,7 @@ export default function Dashboard() {
                 <EvidenceTable data={filteredData} />
               </>
             ) : activeMenu === 'activity' ? (
-              <ActivityFeed data={filteredData} latestTanggal={latestTanggal} oldestTanggal={oldestTanggal} />
+              <ActivityFeed data={filteredData} />
             ) : activeMenu === 'calendar' ? (
               <CalendarView key={filteredData.map((item) => item.id).join('-')} data={filteredData} />
             ) : null}

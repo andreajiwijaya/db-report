@@ -1,5 +1,5 @@
 import { UP3_LIST, MONTHLY_PUBLICATION_TARGET } from '../utils/constants'
-import { getMonthlyPublicationStats, getPublicationDate } from '../utils/dataUtils'
+import { getMonthlyPublicationStats, getPeriodDate } from '../utils/dataUtils'
 
 function monthLabel(key) {
   const [year, month] = key.split('-').map(Number)
@@ -9,7 +9,7 @@ function monthLabel(key) {
 export default function UP3ProgressChart({ rawData }) {
   const months = [...new Set(
     rawData
-      .map(getPublicationDate)
+      .map(getPeriodDate)
       .filter(Boolean)
       .map((date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`)
   )].sort()
@@ -17,8 +17,8 @@ export default function UP3ProgressChart({ rawData }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:shadow-md">
       <div className="mb-5">
-        <h3 className="text-lg font-bold text-slate-900">Realisasi Publikasi per Unit</h3>
-        <p className="text-sm text-slate-500">Capaian dihitung dari jumlah siaran pers dibanding target {MONTHLY_PUBLICATION_TARGET} publikasi per bulan.</p>
+        <h3 className="text-lg font-bold text-slate-900">Realisasi Siaran Pers per Unit</h3>
+        <p className="text-sm text-slate-500">Capaian dihitung dari jumlah Siaran Pers dibanding target {MONTHLY_PUBLICATION_TARGET} Siaran Pers per bulan.</p>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-[720px] w-full text-sm">
@@ -53,7 +53,7 @@ export default function UP3ProgressChart({ rawData }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-xs text-slate-500">Rumus capaian: jumlah publikasi ÷ {MONTHLY_PUBLICATION_TARGET} × 100%. Contoh: 2 publikasi = 67%, 5 publikasi = 167%.</p>
+      <p className="mt-4 text-xs text-slate-500">Rumus capaian: jumlah Siaran Pers ÷ {MONTHLY_PUBLICATION_TARGET} × 100%. Contoh: 2 Siaran Pers = 67%, 5 Siaran Pers = 167%.</p>
     </div>
   )
 }

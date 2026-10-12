@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { calcUP3Stats, getMonthKey, getMonthlyPublicationStats, getPublicationDate } from '../utils/dataUtils'
+import { calcUP3Stats, getMonthKey, getMonthlyPublicationStats, getPeriodDate } from '../utils/dataUtils'
 import ProgressBar from './ProgressBar'
 import StatusBadge from './StatusBadge'
 
@@ -7,7 +7,7 @@ export default function UP3Card({ up3, data, monthKey = null, isActive, onClick 
   const monthlyStats = getMonthlyPublicationStats(data, up3.id)
   const monthlyTotal = monthKey ? monthlyStats.get(monthKey) || 0 : null
   const monthlyData = monthKey
-    ? data.filter((item) => item.up3 === up3.id && getMonthKey(getPublicationDate(item)) === monthKey)
+    ? data.filter((item) => item.up3 === up3.id && getMonthKey(getPeriodDate(item)) === monthKey)
     : data
   const stats = monthKey
     ? { ...calcUP3Stats(monthlyData, up3.id), total: monthlyTotal, publicationTarget: 3, publicationCapaian: Math.round((monthlyTotal / 3) * 100) }
@@ -48,18 +48,18 @@ export default function UP3Card({ up3, data, monthKey = null, isActive, onClick 
         <div className="flex flex-wrap gap-4">
           <div>
             <p className="text-lg font-bold text-slate-800 leading-none">{stats.publicationCapaian}%</p>
-            <p className="text-xs text-slate-400 mt-0.5">capaian publikasi</p>
+            <p className="text-xs text-slate-400 mt-0.5">capaian Siaran Pers</p>
           </div>
           <div>
             <p className="text-lg font-bold text-slate-800 leading-none">
               {stats.total}
               <span className="text-slate-400 font-normal text-sm">/{stats.publicationTarget}</span>
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">publikasi tercatat</p>
+            <p className="text-xs text-slate-400 mt-0.5">Siaran Pers tercatat</p>
           </div>
         </div>
         <p className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
-          {stats.total} evidence
+          {stats.total} Siaran Pers
         </p>
       </div>
     </button>

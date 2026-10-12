@@ -11,10 +11,10 @@ export default function SummaryPanel({ stats = {}, currentMonthStats = {}, total
   const items = [
     { icon: Building2, label: 'Total Unit', value: totalUnits, detail: 'Unit monitoring terdaftar', tone: 'violet' },
     { icon: CalendarCheck, label: 'Unit Melapor', value: reportingUnits, detail: `Melapor pada ${currentMonthLabel}`, tone: 'blue' },
-    { icon: FileText, label: 'Total Laporan', value: totalReports, detail: 'Jumlah evidence seluruh periode', tone: 'emerald' },
-    { icon: FileText, label: 'Laporan Bulan Ini', value: currentMonthReports, detail: `Laporan pada ${currentMonthLabel}`, tone: 'amber' },
-    { icon: Download, label: 'Tautan Terisi', value: totalLinks, detail: `${avgLinks} link/evidence`, tone: 'amber' },
-    { icon: FileText, label: 'Evidence Lengkap Bulan Ini', value: currentMonthComplete, detail: 'Minimal 6 dari 10 link terisi', tone: 'emerald' },
+    { icon: FileText, label: 'Total Siaran Pers', value: totalReports, detail: 'Jumlah Siaran Pers seluruh periode', tone: 'emerald' },
+    { icon: FileText, label: 'Siaran Pers Bulan Ini', value: currentMonthReports, detail: `Siaran Pers pada ${currentMonthLabel}`, tone: 'amber' },
+    { icon: Download, label: 'Tautan Terisi', value: totalLinks, detail: `${avgLinks} link/Siaran Pers`, tone: 'amber' },
+    { icon: FileText, label: 'Siaran Pers Lengkap Bulan Ini', value: currentMonthComplete, detail: 'Minimal 6 dari 10 link terisi', tone: 'emerald' },
   ]
   const itemColumns = [
     items.slice(0, 2),
@@ -34,7 +34,7 @@ export default function SummaryPanel({ stats = {}, currentMonthStats = {}, total
               Live monitoring
             </div>
             <h3 className="text-xl font-bold tracking-tight text-white sm:text-2xl">Ringkasan Global</h3>
-            <p className="mt-1 max-w-xl text-sm text-blue-100/75">Satu pandangan metrik utama berdasarkan kelengkapan 10 link per evidence.</p>
+            <p className="mt-1 max-w-xl text-sm text-blue-100/75">Satu pandangan metrik utama berdasarkan kelengkapan 10 link per Siaran Pers.</p>
           </div>
         </div>
       </div>
@@ -74,10 +74,10 @@ export default function SummaryPanel({ stats = {}, currentMonthStats = {}, total
         <div className="mt-7">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-semibold text-slate-800">Kelengkapan Link Evidence</h4>
-              <p className="mt-0.5 text-xs text-slate-500">Status lengkap jika minimal 6 dari 10 link pada evidence terisi.</p>
+              <h4 className="text-sm font-semibold text-slate-800">Kelengkapan Link Siaran Pers</h4>
+              <p className="mt-0.5 text-xs text-slate-500">Status lengkap jika minimal 6 dari 10 link pada Siaran Pers terisi.</p>
             </div>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">{totalReports} evidence</span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">{totalReports} Siaran Pers</span>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {[
@@ -95,7 +95,7 @@ export default function SummaryPanel({ stats = {}, currentMonthStats = {}, total
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/80">
                     <div className={`h-full rounded-full ${item.color} transition-all duration-500`} style={{ width: `${percentage}%` }} />
                   </div>
-                  <p className="mt-2 text-[11px] opacity-75">{percentage}% dari total evidence</p>
+                  <p className="mt-2 text-[11px] opacity-75">{percentage}% dari total Siaran Pers</p>
                 </div>
               )
             })}

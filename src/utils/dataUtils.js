@@ -112,7 +112,7 @@ function normalizeRow(row, index) {
     const rawUp3 = row[COL.UP3] || ''
     const up3Id = normalizeUP3(rawUp3)
 
-    const rawTanggal = row[COL.TANGGAL] || row[COL.TIMESTAMP] || ''
+    const rawTanggal = row[COL.TANGGAL] || ''
     const tanggal = parseTanggal(rawTanggal)
     const timestamp = row[COL.TIMESTAMP] || ''
     const timestampDate = parseTimestamp(timestamp)
@@ -237,6 +237,10 @@ export function getPublicationDate(row) {
   return row.timestampDate || row.tanggal || null
 }
 
+export function getPeriodDate(row) {
+  return row.tanggal || null
+}
+
 export function getLatestMonthKey(data) {
   const latestDate = data
     .map(getPublicationDate)
@@ -261,7 +265,7 @@ export function calcUP3Stats(data, up3Id) {
   const pctLengkap = total > 0 ? Math.round((lengkap / total) * 100) : 0
   const months = new Set(
     rows
-      .map(getPublicationDate)
+      .map(getPeriodDate)
       .filter(Boolean)
       .map(getMonthKey)
   ).size
@@ -274,7 +278,7 @@ export function calcUP3Stats(data, up3Id) {
 export function getMonthlyPublicationStats(data, up3Id) {
   const rows = data
     .filter((row) => row.up3 === up3Id)
-    .map((row) => ({ row, date: getPublicationDate(row) }))
+    .map((row) => ({ row, date: getPeriodDate(row) }))
     .filter(({ date }) => date)
   const byMonth = new Map()
 
@@ -290,7 +294,7 @@ export function getMonthlyUP3Stats(data, up3Id) {
   const monthKeys = new Set(
     data
       .filter((row) => row.up3 === up3Id)
-      .map(getPublicationDate)
+      .map(getPeriodDate)
       .filter(Boolean)
       .map(getMonthKey)
   )
@@ -298,7 +302,7 @@ export function getMonthlyUP3Stats(data, up3Id) {
   return Array.from(monthKeys)
     .sort((a, b) => b.localeCompare(a))
     .map((monthKey) => {
-      const monthData = data.filter((row) => row.up3 === up3Id && getMonthKey(getPublicationDate(row)) === monthKey)
+      const monthData = data.filter((row) => row.up3 === up3Id && getMonthKey(getPeriodDate(row)) === monthKey)
       const stats = calcUP3Stats(monthData, up3Id)
       const [year, month] = monthKey.split('-').map(Number)
 
@@ -325,7 +329,7 @@ export function calcGlobalStats(data) {
   const aktifUP3 = new Set(data.map((d) => d.up3)).size
   const months = new Set(
     data
-      .map(getPublicationDate)
+      .map(getPeriodDate)
       .filter(Boolean)
       .map(getMonthKey)
   ).size

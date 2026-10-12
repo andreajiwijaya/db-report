@@ -8,7 +8,7 @@ const COLS = [
   { key: 'no',     label: '#',              sortable: false, width: 'w-10' },
   { key: 'up3Raw', label: 'Unit',           sortable: true,  width: 'w-36' },
   { key: 'tipe',   label: 'Tipe Siaran',    sortable: true,  width: 'w-44' },
-  { key: 'judul',  label: 'Judul Evidence', sortable: true,  width: '' },
+  { key: 'judul',  label: 'Judul Siaran Pers', sortable: true,  width: '' },
   { key: 'tanggal',label: 'Tanggal',        sortable: true,  width: 'w-28' },
   { key: 'links',  label: 'Link (10)',       sortable: false, width: 'w-40' },
   { key: 'status', label: 'Status',         sortable: true,  width: 'w-28' },
@@ -128,7 +128,7 @@ export default function EvidenceTable({ data }) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
           <p className="text-xs text-slate-400">
-            {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, sorted.length)} dari {sorted.length} evidence
+            {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, sorted.length)} dari {sorted.length} Siaran Pers
           </p>
           <div className="flex gap-1">
             <button

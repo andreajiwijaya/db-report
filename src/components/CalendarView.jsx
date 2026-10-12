@@ -71,7 +71,7 @@ export default function CalendarView({ data = [] }) {
       </PageHero>
 
       {data.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-sm text-slate-500">Belum ada evidence untuk ditampilkan pada kalender.</div>
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center text-sm text-slate-500">Belum ada Siaran Pers untuk ditampilkan pada kalender.</div>
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -116,7 +116,7 @@ export default function CalendarView({ data = [] }) {
                   <p className="mt-2 text-xs text-slate-500">{item.up3Raw || item.up3 || '-'} · {item.tipe || 'Tipe tidak tersedia'}</p>
                   <p className="mt-1 text-xs text-blue-700"><span className="font-semibold">Diisi GForm:</span> {formatTimestamp(item.timestamp)}</p>
                   <p className="mt-1 text-xs text-slate-500"><span className="font-semibold">Periode siaran:</span> {formatTanggal(item.tanggal)}</p>
-                  {item.links?.find(Boolean) && <a href={item.links.find(Boolean)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900">Buka evidence <ExternalLink size={12} /></a>}
+                  {item.links?.find(Boolean) && <a href={item.links.find(Boolean)} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900">Buka Siaran Pers <ExternalLink size={12} /></a>}
                 </div>
               ))}
             </div>

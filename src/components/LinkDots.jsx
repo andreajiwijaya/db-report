@@ -14,7 +14,7 @@ export default function LinkDots({ links = [], size = 'md', showLabel = false })
           target="_blank"
           rel="noopener noreferrer"
           title={link ? `Link ${i + 1}: ${link}` : `Link ${i + 1} belum diisi`}
-          aria-label={link ? `Buka link evidence ${i + 1}` : `Link evidence ${i + 1} belum diisi`}
+          aria-label={link ? `Buka link Siaran Pers ${i + 1}` : `Link Siaran Pers ${i + 1} belum diisi`}
           className={clsx(
             dotSize,
             'group relative rounded-md shrink-0 border transition-all duration-150',

@@ -5,9 +5,9 @@ export default function Sidebar({ activeMenu, setActiveMenu }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'unit-performance', label: 'Performa Unit', icon: BarChart3 },
-    { id: 'evidence', label: 'Evidence', icon: FileText },
-    { id: 'activity', label: 'Activity Log', icon: ListChecks },
-    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+    { id: 'evidence', label: 'Siaran Pers', icon: FileText },
+    { id: 'activity', label: 'Log Aktivitas', icon: ListChecks },
+    { id: 'calendar', label: 'Kalender', icon: CalendarDays },
   ]
 
   return (

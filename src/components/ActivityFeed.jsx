@@ -1,9 +1,17 @@
 import { AlertTriangle, ArrowUpRight, CalendarRange, CheckCircle2, Clock3, Link2, ListChecks } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { formatTanggal, formatTimestamp, getPublicationDate } from '../utils/dataUtils'
 import { MONTHLY_PUBLICATION_TARGET } from '../utils/constants'
 import { getStatusLabel } from '../utils/constants'
 
-export default function ActivityFeed({ data = [], latestTanggal = null, oldestTanggal = null }) {
+export default function ActivityFeed({ data = [] }) {
+  const [currentDateTime, setCurrentDateTime] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentDateTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   const recentItems = [...data]
     .filter((item) => item.timestampDate || item.tanggal)
     .sort((a, b) => {
@@ -23,9 +31,6 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
   ).size
   const publicationTarget = publicationMonths * MONTHLY_PUBLICATION_TARGET
   const publicationCapaian = publicationTarget > 0 ? Math.round((data.length / publicationTarget) * 100) : 0
-  const latestDateLabel = latestTanggal ? formatTanggal(latestTanggal) : 'Belum ada data'
-  const oldestDateLabel = oldestTanggal ? formatTanggal(oldestTanggal) : 'Belum ada data'
-
   return (
     <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
       <div className="relative overflow-hidden border-b border-slate-200/80 bg-linear-to-br from-slate-950 via-blue-950 to-blue-800 px-5 py-6 sm:px-7">
@@ -37,8 +42,8 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
               <ListChecks size={12} />
               Monitoring aktivitas
             </div>
-            <h3 className="mt-3 text-xl font-bold tracking-tight text-white sm:text-2xl">Evidence terbaru</h3>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-blue-100/75">Pantau evidence yang baru masuk berdasarkan waktu pengisian GForm dan prioritaskan item yang masih perlu dilengkapi.</p>
+            <h3 className="mt-3 text-xl font-bold tracking-tight text-white sm:text-2xl">Siaran Pers terbaru</h3>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-blue-100/75">Pantau Siaran Pers yang baru masuk berdasarkan waktu pengisian GForm dan prioritaskan item yang masih perlu dilengkapi.</p>
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
@@ -46,8 +51,22 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
               <CalendarRange size={18} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-100/60">Periode monitoring</p>
-              <p className="mt-1 text-sm font-semibold text-white">{oldestDateLabel} - {latestDateLabel}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-100/60">Waktu monitoring</p>
+              <p
+                className="mt-1 text-sm font-semibold text-white"
+                title="Tanggal dan waktu perangkat saat ini"
+                aria-live="polite"
+              >
+                {currentDateTime.toLocaleString('id-ID', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                })}
+              </p>
             </div>
           </div>
         </div>
@@ -56,10 +75,10 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
       <div className="border-b border-slate-200/80 bg-slate-50/55 p-4 sm:p-5">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
-            { label: 'Total aktivitas', value: data.length, detail: 'evidence tercatat', tone: 'blue' },
+            { label: 'Total aktivitas', value: data.length, detail: 'Siaran Pers tercatat', tone: 'blue' },
             { label: 'Perlu tindak lanjut', value: incompleteCount, detail: 'belum lengkap', tone: 'amber' },
             { label: 'Sudah lengkap', value: completeCount, detail: 'siap direkap', tone: 'emerald' },
-            { label: 'Capaian publikasi', value: `${publicationCapaian}%`, detail: `${data.length}/${publicationTarget} publikasi`, tone: 'violet' },
+            { label: 'Capaian Siaran Pers', value: `${publicationCapaian}%`, detail: `${data.length}/${publicationTarget} Siaran Pers`, tone: 'violet' },
           ].map((item) => {
             const tone = {
               blue: 'border-blue-100 bg-blue-50/70 text-blue-700',
@@ -83,7 +102,7 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h4 className="text-base font-bold text-slate-900">Aktivitas terbaru</h4>
-            <p className="mt-0.5 text-xs text-slate-500">Diurutkan dari evidence yang paling baru diterima.</p>
+            <p className="mt-0.5 text-xs text-slate-500">Diurutkan dari Siaran Pers yang paling baru diterima.</p>
           </div>
           <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-500">
             {recentItems.length} terbaru
@@ -95,7 +114,7 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
             <Clock3 className="mx-auto text-slate-300" size={28} />
             <p className="mt-3 text-sm font-medium text-slate-700">Belum ada aktivitas yang bisa ditampilkan</p>
-            <p className="mt-1 text-xs text-slate-500">Activity log akan muncul setelah evidence masuk ke sistem.</p>
+            <p className="mt-1 text-xs text-slate-500">Activity log akan muncul setelah Siaran Pers masuk ke sistem.</p>
           </div>
         ) : (
           recentItems.map((item) => {
@@ -108,10 +127,10 @@ export default function ActivityFeed({ data = [], latestTanggal = null, oldestTa
                 : 'bg-slate-100 text-slate-600 border-slate-200'
             const Icon = isComplete ? CheckCircle2 : isPartial ? AlertTriangle : Link2
             const detailText = isComplete
-              ? 'Evidence siap direkap dan dipakai untuk laporan.'
+              ? 'Siaran Pers siap direkap dan dipakai untuk laporan.'
               : isPartial
                 ? `${item.linkCount}/10 link terisi. Minimal 6 link diperlukan.`
-                : 'Belum ada link evidence yang masuk.'
+                : 'Belum ada link Siaran Pers yang masuk.'
 
             return (
               <div key={item.id} className="group rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50/35 hover:shadow-sm">

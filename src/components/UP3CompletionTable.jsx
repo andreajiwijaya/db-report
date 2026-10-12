@@ -6,8 +6,8 @@ export default function UP3CompletionTable({ data = [], monthLabel = 'bulan terb
     <div className="bg-white border border-slate-200 rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Capaian Publikasi per Unit</h3>
-          <p className="text-sm text-slate-500">Realisasi bulan {monthLabel}, dibanding target 3 publikasi</p>
+          <h3 className="text-lg font-bold text-slate-900">Capaian Siaran Pers per Unit</h3>
+          <p className="text-sm text-slate-500">Realisasi bulan {monthLabel}, dibanding target 3 Siaran Pers</p>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export default function UP3CompletionTable({ data = [], monthLabel = 'bulan terb
 
               <div className="w-28 text-right">
                 <p className="text-sm font-bold text-slate-900">{capaian}%</p>
-                <p className="text-xs text-slate-500">{realisasi}/{target} publikasi</p>
+                <p className="text-xs text-slate-500">{realisasi}/{target} Siaran Pers</p>
               </div>
             </div>
           )

@@ -31,7 +31,7 @@ export default function UP3StatusChart({ data, up3 }) {
     <div className="bg-white border border-slate-200 rounded-2xl p-6">
       <div className="mb-6">
         <h3 className="text-lg font-bold text-slate-900 mb-1">Distribusi Status</h3>
-        <p className="text-sm text-slate-500">Breakdown evidence berdasarkan kelengkapan link</p>
+        <p className="text-sm text-slate-500">Rincian Siaran Pers berdasarkan kelengkapan link</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -58,7 +58,7 @@ export default function UP3StatusChart({ data, up3 }) {
                   border: '1px solid #e2e8f0',
                   borderRadius: '0.5rem',
                 }}
-                formatter={(value) => [`${value} evidence`, 'Jumlah']}
+                formatter={(value) => [`${value} Siaran Pers`, 'Jumlah']}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -85,7 +85,7 @@ export default function UP3StatusChart({ data, up3 }) {
                 />
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                {((item.value / stats.total) * 100).toFixed(1)}% dari total evidence
+                {((item.value / stats.total) * 100).toFixed(1)}% dari total Siaran Pers
               </p>
             </div>
           ))}
@@ -95,7 +95,7 @@ export default function UP3StatusChart({ data, up3 }) {
             <p className="text-sm text-blue-700 font-semibold mb-3">Ringkasan</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-blue-600">Total Evidence</span>
+                <span className="text-blue-600">Total Siaran Pers</span>
                 <span className="font-bold text-blue-900">{stats.total}</span>
               </div>
               <div className="flex justify-between">
@@ -103,7 +103,7 @@ export default function UP3StatusChart({ data, up3 }) {
                 <span className="font-bold text-blue-900">{totalLinks}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-600">Rata-rata Link/Evidence</span>
+                <span className="text-blue-600">Rata-rata Link/Siaran Pers</span>
                 <span className="font-bold text-blue-900">{avgLinksPerEvidence}</span>
               </div>
               <div className="flex justify-between">

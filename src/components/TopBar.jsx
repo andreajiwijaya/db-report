@@ -1,25 +1,22 @@
 import { useMemo, useState } from 'react'
-import { Search, Bell, Download, FileJson, FileText, AlertTriangle, Info, CheckCircle2, CalendarDays, X } from 'lucide-react'
-import plnLogo from '../assets/LOGO PLN UID RIAU KEPRI.png'
-import { exportToPDF } from '../utils/exportUtils'
-import { UP3_LIST } from '../utils/constants'
-import { calcGlobalQualityScore, calcGlobalStats, rankUP3sByQuality } from '../utils/dataUtils'
+import { Bell, Download, FileJson, FileText, AlertTriangle, Info, CheckCircle2, CalendarDays, X } from 'lucide-react'
+import { exportPublicationPDF } from '../utils/exportUtils'
+import { MONTHLY_PUBLICATION_TARGET } from '../utils/constants'
+import { calcGlobalStats, getMonthKey, getPeriodDate, getPublicationDate } from '../utils/dataUtils'
 
-export default function TopBar({ title, subtitle, data = [], rawData = [], activeMenu = 'dashboard', searchValue = '', onSearchChange = () => {} }) {
+export default function TopBar({ title, subtitle, data = [], rawData = [], activeMenu = 'dashboard' }) {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const isCalendarMode = activeMenu === 'calendar'
 
   const stats = useMemo(() => calcGlobalStats(data), [data])
-  const qualityScore = useMemo(() => calcGlobalQualityScore(data), [data])
-
   const notifications = useMemo(() => {
     if (rawData.length === 0) {
       return [
         {
           id: 'empty',
           title: 'Belum ada data masuk',
-          message: 'Sumber Google Sheets belum mengirim evidence untuk dipantau.',
+          message: 'Sumber Google Sheets belum mengirim Siaran Pers untuk dipantau.',
           icon: AlertTriangle,
           tone: 'warning',
         },
@@ -29,8 +26,8 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
     const items = [
       {
         id: 'view',
-        title: 'Tampilan siap diekspor',
-        message: `${data.length} evidence sedang tampil pada menu ${activeMenu}.`,
+        title: 'Data siap dipantau',
+        message: `${data.length} Siaran Pers sedang ditampilkan pada halaman ${activeMenu}.`,
         icon: Info,
         tone: 'info',
       },
@@ -40,26 +37,35 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
       items.push({
         id: 'empty-link',
         title: 'Perlu tindak lanjut',
-        message: `${stats.kosong} evidence belum upload link dan butuh pengecekan.`,
+        message: `${stats.kosong} Siaran Pers belum upload link dan butuh pengecekan.`,
         icon: AlertTriangle,
         tone: 'warning',
       })
     }
 
-    items.push({
-      id: 'quality',
-      title: qualityScore >= 80 ? 'Quality tinggi' : qualityScore >= 60 ? 'Quality stabil' : 'Quality perlu perhatian',
-      message:
-        qualityScore >= 80
-          ? `Skor kualitas ${qualityScore}/100 sudah masuk kategori baik.`
-          : qualityScore >= 60
-            ? `Skor kualitas ${qualityScore}/100 masih aman dipantau.`
-            : `Skor kualitas ${qualityScore}/100. Cek unit dengan skor terendah.`,
-      icon: CheckCircle2,
-      tone: qualityScore >= 80 ? 'success' : qualityScore >= 60 ? 'info' : 'danger',
-    })
+    if (stats.sebagian > 0) {
+      items.push({
+        id: 'partial-link',
+        title: 'Siaran Pers belum lengkap',
+        message: `${stats.sebagian} Siaran Pers baru memiliki 1–5 link dan perlu dilengkapi.`,
+        icon: AlertTriangle,
+        tone: 'warning',
+      })
+    }
 
-    const latestEntry = [...data].filter((item) => item.tanggal).sort((a, b) => b.tanggal - a.tanggal)[0]
+    if (stats.sebagian === 0 && stats.kosong === 0) {
+      items.push({
+        id: 'quality',
+        title: 'Siaran Pers lengkap',
+        message: `Semua ${stats.total} Siaran Pers yang tampil memiliki minimal 6 link terisi.`,
+        icon: CheckCircle2,
+        tone: 'success',
+      })
+    }
+
+    const latestEntry = [...data]
+      .filter((item) => getPublicationDate(item))
+      .sort((a, b) => getPublicationDate(b) - getPublicationDate(a))[0]
     if (latestEntry) {
       items.push({
         id: 'latest',
@@ -71,26 +77,74 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
     }
 
     return items.slice(0, 4)
-  }, [activeMenu, data, qualityScore, rawData.length, stats.kosong])
+  }, [activeMenu, data, rawData.length, stats.kosong, stats.sebagian, stats.total])
 
-  const downloadCSV = (dataset, filename) => {
+  const attentionCount = notifications.filter((item) => item.tone === 'warning' || item.tone === 'danger').length
+
+  const getMonthLabel = (date) => date
+    ? date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+    : 'Tanpa periode'
+
+  const getGroupedPublicationData = (dataset) => {
+    const groups = new Map()
+    dataset.forEach((item) => {
+      const date = getPeriodDate(item)
+      const monthKey = getMonthKey(date) || 'tanpa-periode'
+      const unitKey = item.up3 || item.up3Raw || 'tanpa-unit'
+      const key = `${unitKey}::${monthKey}`
+      if (!groups.has(key)) {
+        groups.set(key, {
+          unitKey,
+          unitLabel: item.up3Raw || item.up3 || 'Tanpa unit',
+          monthKey,
+          monthLabel: getMonthLabel(date),
+          items: [],
+        })
+      }
+      groups.get(key).items.push(item)
+    })
+
+    return Array.from(groups.values()).sort((a, b) => {
+      const unitCompare = a.unitLabel.localeCompare(b.unitLabel)
+      return unitCompare || b.monthKey.localeCompare(a.monthKey)
+    })
+  }
+
+  const downloadPublicationCSV = (dataset, filename) => {
     if (dataset.length === 0) {
       alert('Tidak ada data untuk diexport')
       return
     }
 
-    const headers = ['No', 'Unit', 'Tipe Siaran', 'Judul Evidence', 'Tanggal', ...Array.from({ length: 10 }, (_, i) => `Link ${i + 1}`), 'Status']
-    const rows = dataset.map((item, idx) => [
-      idx + 1,
-      item.up3Raw || item.up3 || '-',
+    const groups = getGroupedPublicationData(dataset)
+    const csvCell = (value) => `"${String(value ?? '-').replace(/"/g, '""')}"`
+    const summaryRows = groups.map((group) => [
+      group.unitLabel,
+      group.monthLabel,
+      group.items.length,
+      MONTHLY_PUBLICATION_TARGET,
+      Math.round((group.items.length / MONTHLY_PUBLICATION_TARGET) * 100),
+    ])
+    const detailRows = groups.flatMap((group) => group.items.map((item, index) => [
+      group.unitLabel,
+      group.monthLabel,
+      index + 1,
+      item.tanggalRaw || '-',
       item.tipe || '-',
       item.judul || '-',
-      item.tanggalRaw || '-',
-      ...(item.links || []).map((link) => link || '-'),
+      item.links?.filter(Boolean).length || 0,
       item.status || '-',
-    ])
-
-    const csvContent = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n')
+    ]))
+    const csvLines = [
+      ['REALISASI PUBLIKASI PER UNIT PER BULAN'],
+      ['Unit', 'Bulan Periode Siaran', 'Realisasi', 'Target', 'Capaian (%)'],
+      ...summaryRows,
+      [],
+      ['DETAIL PERS PER UNIT PER BULAN'],
+      ['Unit', 'Bulan Periode Siaran', 'No', 'Tanggal Periode', 'Tipe Siaran', 'Judul Pers', 'Link Terisi', 'Status'],
+      ...detailRows,
+    ]
+    const csvContent = csvLines.map((row) => row.map(csvCell).join(',')).join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -101,53 +155,21 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
     setExportOpen(false)
   }
 
-  const handleExportPDF = (dataset, scopeLabel) => {
+  const handleExportPDF = (dataset) => {
     if (dataset.length === 0) {
       alert('Tidak ada data untuk diexport')
       return
     }
 
-    const escapeHtml = (value) => String(value ?? '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-    const statsPdf = calcGlobalStats(dataset)
-    const qualityScorePdf = calcGlobalQualityScore(dataset)
-    const qualityRanking = rankUP3sByQuality(dataset, UP3_LIST)
-
-    const summaryCards = `
-      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px;">
-        <div style="border:1px solid #dbeafe;border-radius:14px;padding:14px;background:#eff6ff;"><div style="font-size:11px;color:#2563eb;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Total Evidence</div><div style="font-size:24px;font-weight:800;color:#0f172a;margin-top:6px;">${statsPdf.total}</div></div>
-        <div style="border:1px solid #dbeafe;border-radius:14px;padding:14px;background:#eff6ff;"><div style="font-size:11px;color:#2563eb;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Sudah Lengkap</div><div style="font-size:24px;font-weight:800;color:#0f172a;margin-top:6px;">${statsPdf.lengkap}</div></div>
-        <div style="border:1px solid #fef3c7;border-radius:14px;padding:14px;background:#fffbeb;"><div style="font-size:11px;color:#b45309;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Quality Score</div><div style="font-size:24px;font-weight:800;color:#0f172a;margin-top:6px;">${qualityScorePdf}/100</div></div>
-        <div style="border:1px solid #e2e8f0;border-radius:14px;padding:14px;background:#f8fafc;"><div style="font-size:11px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Unit Aktif</div><div style="font-size:24px;font-weight:800;color:#0f172a;margin-top:6px;">${statsPdf.aktifUP3}</div></div>
-      </div>
-    `
-
-    const rankingRows = qualityRanking.map((item, idx) => `
-      <tr><td style="padding:10px;border-bottom:1px solid #e2e8f0;">${idx + 1}</td><td style="padding:10px;border-bottom:1px solid #e2e8f0;">${escapeHtml(item.up3.label)}</td><td style="padding:10px;border-bottom:1px solid #e2e8f0;">${escapeHtml(item.up3.area)}</td><td style="padding:10px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700;">${item.score}</td></tr>
-    `).join('')
-
-    const detailRows = dataset.map((item, idx) => `
-      <tr><td>${idx + 1}</td><td>${escapeHtml(item.up3Raw || item.up3 || '-')}</td><td>${escapeHtml(item.tipe || '-')}</td><td>${escapeHtml(item.judul || '-')}</td><td>${escapeHtml(item.tanggalRaw || '-')}</td><td>${item.links?.filter((l) => l).length || 0}/10</td><td>${escapeHtml(item.status || '-')}</td></tr>
-    `).join('')
-
-    const html = `
-      ${summaryCards}
-      <div style="margin-bottom:20px;">
-        <h3 style="color:#1e40af;margin-bottom:10px;">Peringkat Quality Unit</h3>
-        <table><thead><tr><th style="text-align:left;">#</th><th style="text-align:left;">Unit</th><th style="text-align:left;">Area</th><th style="text-align:right;">Score</th></tr></thead><tbody>${rankingRows}</tbody></table>
-      </div>
-      <div>
-        <h3 style="color:#1e40af;margin-bottom:10px;">Detail Evidence</h3>
-        <table><thead><tr><th>No</th><th>Unit</th><th>Tipe Siaran</th><th>Judul Evidence</th><th>Tanggal</th><th>Links</th><th>Status</th></tr></thead><tbody>${detailRows}</tbody></table>
-      </div>
-    `
-
-    exportToPDF('MonEv Evidence Report', html, {
-      logoSrc: plnLogo,
-      subtitle: 'PLN UID Riau & Kepri - Monitoring Evidence Report',
-      scopeLabel,
+    const groups = getGroupedPublicationData(dataset)
+    exportPublicationPDF({
+      groups,
+      target: MONTHLY_PUBLICATION_TARGET,
+      filename: `laporan-monitoring-siaran-pers-${new Date().toISOString().split('T')[0]}.pdf`,
     })
     setExportOpen(false)
   }
@@ -169,39 +191,33 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4">
-          {!isCalendarMode && (
-            <div className="hidden xl:flex relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Cari evidence..."
-                value={searchValue}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-9 pr-4 py-2.5 border border-slate-200/80 rounded-full text-sm bg-slate-50/80 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:bg-white min-w-72"
-              />
-            </div>
-          )}
-
-          {!isCalendarMode && (
-            <div className="relative">
-              <button
+          <div className="relative">
+            <button
                 onClick={() => {
                   setExportOpen(false)
                   setNotificationOpen((open) => !open)
                 }}
-                className="relative p-2.5 hover:bg-blue-50 rounded-full transition-colors border border-transparent hover:border-blue-100"
+                className={`relative rounded-full border border-transparent p-2.5 transition-colors ${
+                  attentionCount > 0
+                    ? 'text-red-600 hover:border-red-100 hover:bg-red-50'
+                    : 'text-emerald-600 hover:border-emerald-100 hover:bg-emerald-50'
+                }`}
                 aria-label="Buka notifikasi sistem"
               >
-                <Bell size={18} className="text-blue-700" />
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-blue-600 ring-2 ring-white" />
+                <Bell size={18} />
+                {attentionCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                    {attentionCount}
+                  </span>
+                )}
               </button>
 
-              {notificationOpen && (
+            {notificationOpen && (
                 <div className="absolute right-0 top-[calc(100%+0.75rem)] z-100 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
                   <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">Notifikasi Sistem</p>
-                      <p className="text-xs text-slate-500">Ringkasan status dashboard</p>
+                      <p className="text-xs text-slate-500">{attentionCount ? `${attentionCount} hal perlu perhatian` : 'Tidak ada hal mendesak'}</p>
                     </div>
                     <button onClick={() => setNotificationOpen(false)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white">
                       <X size={14} />
@@ -233,12 +249,11 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
                     })}
                   </div>
                 </div>
-              )}
-            </div>          )}
+            )}
+          </div>
 
-          {!isCalendarMode && (
-            <div className="relative">
-              <button
+          <div className="relative">
+            <button
                 onClick={() => {
                   setNotificationOpen(false)
                   setExportOpen((open) => !open)
@@ -249,48 +264,33 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
                 <span className="hidden sm:inline">Export</span>
               </button>
 
-              {exportOpen && (
+            {exportOpen && (
                 <div className="absolute right-0 top-[calc(100%+0.75rem)] z-100 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
                   <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
                     <p className="text-sm font-semibold text-slate-900">Export Data</p>
-                    <p className="text-xs text-slate-500">Pilih data tampil atau semua data</p>
+                    <p className="text-xs text-slate-500">Unduh realisasi dan detail pers dari data yang sedang tampil.</p>
                   </div>
                   <div className="space-y-3 p-3">
-                    <div>
-                      <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Data Tampil</p>
-                      <button onClick={() => downloadCSV(data, `evidence-terfilter-${new Date().toISOString().split('T')[0]}.csv`)} className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
-                        <FileJson size={14} />
-                        Export CSV
-                      </button>
-                      <button onClick={() => handleExportPDF(data, 'terfilter')} className="mt-1 flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
-                        <FileText size={14} />
-                        Export PDF
-                      </button>
-                    </div>
-                    <div className="border-t border-slate-100 pt-3">
-                      <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Semua Data</p>
-                      <button onClick={() => downloadCSV(rawData, `evidence-semua-data-${new Date().toISOString().split('T')[0]}.csv`)} className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
-                        <FileJson size={14} />
-                        Export CSV
-                      </button>
-                      <button onClick={() => handleExportPDF(rawData, 'semua-data')} className="mt-1 flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
-                        <FileText size={14} />
-                        Export PDF
-                      </button>
-                    </div>
+                    <button onClick={() => downloadPublicationCSV(data, `realisasi-pers-${new Date().toISOString().split('T')[0]}.csv`)} className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
+                      <FileJson size={14} />
+                      CSV — realisasi & detail {data.length} pers
+                    </button>
+                    <button onClick={() => handleExportPDF(data)} className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-700">
+                      <FileText size={14} />
+                      PDF — laporan {data.length} pers
+                    </button>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-3 ml-1 pl-3 border-l border-slate-200/80">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-linear-to-br from-blue-600 to-blue-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
-              A
+              K
             </div>
             <div className="hidden sm:block text-sm">
               <p className="font-medium text-slate-900 leading-tight">Komunikasi</p>
-              <p className="text-xs text-slate-500 leading-tight mt-0.5">Pengelola Monitoring Evidence</p>
+              <p className="text-xs text-slate-500 leading-tight mt-0.5">Pengelola Monitoring Pers</p>
             </div>
           </div>
         </div>
