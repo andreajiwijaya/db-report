@@ -21,7 +21,7 @@ export default function UP3ProgressChart({ rawData }) {
         <p className="text-sm text-slate-500">Capaian dihitung dari jumlah Siaran Pers dibanding target {MONTHLY_PUBLICATION_TARGET} Siaran Pers per bulan.</p>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-[720px] w-full text-sm">
+        <table className="min-w-180 w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-3 py-3">Unit</th>

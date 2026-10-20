@@ -121,7 +121,7 @@ function CalendarSkeleton() {
         <Skeleton className="h-3 w-28" /><Skeleton className="mt-3 h-8 w-64" /><Skeleton className="mt-3 h-4 w-96 max-w-full" />
       </section>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><Skeleton className="h-[28rem] w-full rounded-2xl" /></section>
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><Skeleton className="h-112 w-full rounded-2xl" /></section>
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><Skeleton className="h-6 w-40" /><Skeleton className="mt-3 h-4 w-56" /><Skeleton className="mt-6 h-32 w-full rounded-2xl" /></section>
       </div>
     </>

@@ -190,8 +190,8 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5 max-w-2xl">{subtitle}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4">
-          <div className="relative">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:gap-3 lg:w-auto lg:gap-4">
+          <div className="static sm:relative">
             <button
                 onClick={() => {
                   setExportOpen(false)
@@ -213,7 +213,7 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
               </button>
 
             {notificationOpen && (
-                <div className="absolute right-0 top-[calc(100%+0.75rem)] z-100 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                <div className="absolute right-4 top-full z-100 mt-2 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl sm:right-0 sm:top-[calc(100%+0.75rem)] sm:mt-0">
                   <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">Notifikasi Sistem</p>
@@ -252,7 +252,7 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
             )}
           </div>
 
-          <div className="relative">
+          <div className="static sm:relative">
             <button
                 onClick={() => {
                   setNotificationOpen(false)
@@ -265,7 +265,7 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
               </button>
 
             {exportOpen && (
-                <div className="absolute right-0 top-[calc(100%+0.75rem)] z-100 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                <div className="absolute right-4 top-full z-100 mt-2 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl sm:right-0 sm:top-[calc(100%+0.75rem)] sm:mt-0">
                   <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
                     <p className="text-sm font-semibold text-slate-900">Export Data</p>
                     <p className="text-xs text-slate-500">Unduh realisasi dan detail pers dari data yang sedang tampil.</p>
@@ -290,7 +290,7 @@ export default function TopBar({ title, subtitle, data = [], rawData = [], activ
             </div>
             <div className="hidden sm:block text-sm">
               <p className="font-medium text-slate-900 leading-tight">Komunikasi</p>
-              <p className="text-xs text-slate-500 leading-tight mt-0.5">Pengelola Monitoring Pers</p>
+              <p className="text-xs text-slate-500 leading-tight mt-0.5">Pengelola Monitoring SiPers</p>
             </div>
           </div>
         </div>
